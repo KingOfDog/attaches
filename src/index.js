@@ -388,7 +388,7 @@ export default class AttachesTool {
   set data({ file, title }) {
     this._data = Object.assign({}, {
       file: {
-        url: (file && file.url) || this._data.file.url,
+        id: (file && file.id) || this._data.file.id,
         name: (file && file.name) || this._data.file.name,
         extension: (file && file.extension) || this._data.file.extension,
         size: (file && file.size) || this._data.file.size,
