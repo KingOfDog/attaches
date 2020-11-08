@@ -58,7 +58,7 @@ const LOADER_TIMEOUT = 500;
 export default class AttachesTool {
   /**
    * @param {AttachesToolData} data
-   * @param {Object} config
+   * @param {object} config
    * @param {API} api
    */
   constructor({ data, config, api }) {
@@ -67,20 +67,22 @@ export default class AttachesTool {
     this.nodes = {
       wrapper: null,
       button: null,
-      title: null
+      title: null,
     };
 
     this._data = {
       file: {},
-      title: ''
+      title: '',
     };
 
     this.config = {
       endpoint: config.endpoint || '',
+      uploader: config.uploader || undefined,
       field: config.field || 'file',
       types: config.types || '*',
       buttonText: config.buttonText || 'Select file to upload',
-      errorMessage: config.errorMessage || 'File upload failed'
+      errorMessage: config.errorMessage || 'File upload failed',
+      baseUrl: config.baseUrl || '',
     };
 
     this.data = data;
@@ -91,7 +93,7 @@ export default class AttachesTool {
     this.uploader = new Uploader({
       config: this.config,
       onUpload: (response) => this.onUpload(response),
-      onError: (error) => this.uploadingFailed(error)
+      onError: (error) => this.uploadingFailed(error),
     });
 
     this.enableFileUpload = this.enableFileUpload.bind(this);
@@ -105,7 +107,7 @@ export default class AttachesTool {
   static get toolbox() {
     return {
       icon: Icon,
-      title: 'Attaches'
+      title: 'Attaches',
     };
   }
 
@@ -128,7 +130,7 @@ export default class AttachesTool {
       size: 'cdx-attaches__size',
       downloadButton: 'cdx-attaches__download-button',
       fileInfo: 'cdx-attaches__file-info',
-      fileIcon: 'cdx-attaches__file-icon'
+      fileIcon: 'cdx-attaches__file-icon',
     };
   }
 
@@ -165,14 +167,15 @@ export default class AttachesTool {
       psd: '#388ae5',
       dmg: '#e26f6f',
       json: '#2988f0',
-      csv: '#3f9e64'
+      csv: '#3f9e64',
     };
   }
 
   /**
    * Return Block data
+   *
    * @param {HTMLElement} toolsContent
-   * @return {AttachesToolData}
+   * @returns {AttachesToolData}
    */
   save(toolsContent) {
     /**
@@ -189,7 +192,8 @@ export default class AttachesTool {
 
   /**
    * Renders Block content
-   * @return {HTMLDivElement}
+   *
+   * @returns {HTMLDivElement}
    */
   render() {
     const holder = this.make('div', this.CSS.baseClass);
@@ -220,6 +224,7 @@ export default class AttachesTool {
   /**
    * Fires after clicks on the Toolbox AttachesTool Icon
    * Initiates click on the Select File button
+   *
    * @public
    */
   appendCallback() {
@@ -228,7 +233,8 @@ export default class AttachesTool {
 
   /**
    * Checks if any of Tool's fields have data
-   * @return {boolean}
+   *
+   * @returns {boolean}
    */
   pluginHasData() {
     return this.data.title !== '' || Object.values(this.data.file).some(item => item !== undefined);
@@ -241,28 +247,27 @@ export default class AttachesTool {
     this.uploader.uploadSelectedFile({
       onPreview: () => {
         this.nodes.wrapper.classList.add(this.CSS.wrapperLoading, this.CSS.loader);
-      }
+      },
     });
   }
 
   /**
    * File uploading callback
+   *
    * @param {UploadResponseFormat} response
    */
   onUpload(response) {
-    const body = response.body;
-
-    if (body.success && body.file) {
-      const { url, name, size } = body.file;
+    if (response.success && response.file) {
+      const { id, name, size } = response.file;
 
       this.data = {
         file: {
-          url,
+          id,
           extension: name.split('.').pop(),
           name,
-          size
+          size,
         },
-        title: name
+        title: name,
       };
 
       this.nodes.button.remove();
@@ -283,7 +288,7 @@ export default class AttachesTool {
     const extensionColor = this.EXTENSIONS[extension];
 
     const fileIcon = this.make('div', this.CSS.fileIcon, {
-      innerHTML: extensionColor ? CustomFileIcon : FileIcon
+      innerHTML: extensionColor ? CustomFileIcon : FileIcon,
     });
 
     if (extensionColor) {
@@ -307,7 +312,7 @@ export default class AttachesTool {
   showFileData() {
     this.nodes.wrapper.classList.add(this.CSS.wrapperWithFile);
 
-    const { file: { size, url }, title } = this.data;
+    const { file: { size, id }, title } = this.data;
 
     this.appendFileIcon();
 
@@ -315,7 +320,7 @@ export default class AttachesTool {
 
     if (title) {
       this.nodes.title = this.make('div', this.CSS.title, {
-        contentEditable: true
+        contentEditable: true,
       });
 
       this.nodes.title.textContent = title;
@@ -344,9 +349,9 @@ export default class AttachesTool {
 
     const downloadIcon = this.make('a', this.CSS.downloadButton, {
       innerHTML: DownloadIcon,
-      href: url,
+      href: this.config.baseUrl + '/' + id,
       target: '_blank',
-      rel: 'nofollow noindex noreferrer'
+      rel: 'nofollow noindex noreferrer',
     });
 
     this.nodes.wrapper.appendChild(downloadIcon);
@@ -354,12 +359,13 @@ export default class AttachesTool {
 
   /**
    * If file uploading failed, remove loader and show notification
+   *
    * @param {string} errorMessage -  error message
    */
   uploadingFailed(errorMessage) {
     this.api.notifier.show({
       message: errorMessage,
-      style: 'error'
+      style: 'error',
     });
 
     this.removeLoader();
@@ -367,7 +373,8 @@ export default class AttachesTool {
 
   /**
    * Return Attaches Tool's data
-   * @return {AttachesToolData}
+   *
+   * @returns {AttachesToolData}
    */
   get data() {
     return this._data;
@@ -375,6 +382,7 @@ export default class AttachesTool {
 
   /**
    * Stores all Tool's data
+   *
    * @param {AttachesToolData} data
    */
   set data({ file, title }) {
@@ -383,14 +391,15 @@ export default class AttachesTool {
         url: (file && file.url) || this._data.file.url,
         name: (file && file.name) || this._data.file.name,
         extension: (file && file.extension) || this._data.file.extension,
-        size: (file && file.size) || this._data.file.size
+        size: (file && file.size) || this._data.file.size,
       },
-      title: title || this._data.title
+      title: title || this._data.title,
     });
   }
 
   /**
    * Moves caret to the end of contentEditable element
+   *
    * @param {HTMLElement} element - contentEditable element
    */
   moveCaretToEnd(element) {
@@ -405,10 +414,11 @@ export default class AttachesTool {
 
   /**
    * Helper method for elements creation
+   *
    * @param tagName
    * @param classNames
    * @param attributes
-   * @return {HTMLElement}
+   * @returns {HTMLElement}
    */
   make(tagName, classNames = null, attributes = {}) {
     const el = document.createElement(tagName);
