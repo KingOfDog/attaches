@@ -16,7 +16,7 @@ const LOADER_TIMEOUT = 500;
 /**
  * @typedef {object} AttachesFileData
  * @description Attaches Tool's file format
- * @property {string} [url] - file's upload url
+ * @property {string} [id] - file's upload id
  * @property {string} [size] - file's size
  * @property {string} [extension] - file's extension
  * @property {string} [name] - file's name
@@ -25,7 +25,7 @@ const LOADER_TIMEOUT = 500;
 /**
  * @typedef {object} FileData
  * @description Attaches Tool's response from backend
- * @property {string} url - file's url
+ * @property {string} id - file's id
  * @property {string} name - file's name with extension
  * @property {string} extension - file's extension
  */
